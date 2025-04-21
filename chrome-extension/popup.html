@@ -20,15 +20,145 @@
         margin: 5px 0;
         font-size: 16px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      button img {
+        width: 20px;
+        height: 20px;
       }
     </style>
   </head>
   <body>
     <h1>Document</h1>
     <p id="text"></p>
-    <button id="saveButton">Save Element</button>
-    <button id="save-screenshot">Save Screenshot</button>
-    <button id="save-html-css">Save HTML/CSS</button>
+    <div id="buttonContainer">
+      <button id="saveButton">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          width="24px"
+          height="24px"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path d="M5 3a2 2 0 00-2 2v12l7-3 7 3V5a2 2 0 00-2-2H5z" />
+        </svg>
+        Save Element
+      </button>
+      <button id="save-screenshot">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          width="24px"
+          height="24px"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 7a2 2 0 012-2h3l2-2h4l2 2h3a2 2 0 012 2v11a2 2 0 01-2 2h-3l-2 2h-4l-2-2H5a2 2 0 01-2-2V7z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 11a3 3 0 100 6 3 3 0 000-6z"
+          />
+        </svg>
+        Element Screenshot
+      </button>
+      <button id="save-html-css">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          width="24px"
+          height="24px"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M16 18l6-6-6-6M8 6l-6 6 6 6"
+          />
+        </svg>
+        Save HTML/CSS
+      </button>
+      <button id="fullScreenButton">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          width="24px"
+          height="24px"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4h6M4 4v6M20 4h-6M20 4v6M4 20h6M4 20v-6M20 20h-6M20 20v-6"
+          />
+        </svg>
+        Full Screen Screenshot
+      </button>
+      <button id="squareSelectButton">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          width="24px"
+          height="24px"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <rect
+            x="4"
+            y="4"
+            width="16"
+            height="16"
+            rx="2"
+            ry="2"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          ></rect>
+        </svg>
+        Draw Square Screenshot
+      </button>
+      <button id="completePageButton">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          width="24px"
+          height="24px"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <rect
+            x="4"
+            y="4"
+            width="16"
+            height="16"
+            rx="2"
+            ry="2"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          ></rect>
+        </svg>
+        Complete Page Screenshot
+      </button>
+    </div>
     <script src="background.js"></script>
     <script src="popup.js"></script>
   </body>

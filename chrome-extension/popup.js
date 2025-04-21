@@ -1,12 +1,35 @@
-document.getElementById("save-screenshot").addEventListener("click", () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.scripting.executeScript({
-      target: { tabId: tabs[0].id },
-      func: startSelection,
-      args: ["screenshot"],
+document
+  .getElementById("save-screenshot")
+  .addEventListener("click", function () {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "START_SELECTION",
+        payload: "screenshot",
+      });
     });
   });
-});
+
+document
+  .getElementById("fullScreenButton")
+  .addEventListener("click", function () {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "START_SELECTION",
+        payload: "viewport",
+      });
+    });
+  });
+
+document
+  .getElementById("squareSelectButton")
+  .addEventListener("click", function () {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "START_SELECTION",
+        payload: "square",
+      });
+    });
+  });
 
 document.getElementById("save-html-css").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -17,6 +40,18 @@ document.getElementById("save-html-css").addEventListener("click", () => {
     });
   });
 });
+
+// NEW: Complete webpage screenshot handler
+document
+  .getElementById("completePageButton")
+  .addEventListener("click", function () {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: "START_SELECTION",
+        payload: "full",
+      });
+    });
+  });
 
 function startSelection(type) {
   // Communicate with content.js to start element selection

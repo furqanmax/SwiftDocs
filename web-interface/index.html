@@ -132,7 +132,12 @@
         <div class="col-md-3">
           <h3>Saved Elements</h3>
           <!-- NEW: Search input to filter saved elements -->
-          <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search elements..." />
+          <input
+            type="text"
+            id="searchInput"
+            class="form-control mb-3"
+            placeholder="Search elements..."
+          />
           <ul id="savedElements" class="list-unstyled">
             <!-- Dynamically loaded saved elements will be inserted here -->
           </ul>
@@ -144,20 +149,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       // Initialize sortable for the editor with handle for dragging blocks
-      Sortable.create(editor, { animation: 150, handle: '.handle' });
-      
+      Sortable.create(editor, { animation: 150, handle: ".handle" });
+
       // Modified createElement to wrap each new element in a container with a drag handle
       function createElement(type, content = null) {
         const container = document.createElement("div");
         container.classList.add("draggable");
         container.setAttribute("tabindex", "0");
-        
+
         // Create and append a drag handle
         const handle = document.createElement("span");
         handle.className = "handle";
         handle.textContent = "⋮";
         container.appendChild(handle);
-        
+
         let elem;
         switch (type) {
           case "heading":
@@ -186,7 +191,7 @@
             return;
         }
         elem.contentEditable = true;
-        elem.addEventListener("click", e => e.stopPropagation());
+        elem.addEventListener("click", (e) => e.stopPropagation());
         container.appendChild(elem);
         editor.appendChild(container);
       }
@@ -229,16 +234,24 @@
           // Sort elements in descending order based on id
           data.sort((a, b) => b.id - a.id);
           // Filter by search query if provided
-          const searchValue = document.getElementById("searchInput").value.toLowerCase();
+          const searchValue = document
+            .getElementById("searchInput")
+            .value.toLowerCase();
           if (searchValue) {
-            data = data.filter(el => {
+            data = data.filter((el) => {
               let contentStr = "";
               if (el.type === "html-css") {
                 contentStr = el.content.html;
               } else {
-                contentStr = typeof el.content === "string" ? el.content : JSON.stringify(el.content);
+                contentStr =
+                  typeof el.content === "string"
+                    ? el.content
+                    : JSON.stringify(el.content);
               }
-              return el.type.toLowerCase().includes(searchValue) || contentStr.toLowerCase().includes(searchValue);
+              return (
+                el.type.toLowerCase().includes(searchValue) ||
+                contentStr.toLowerCase().includes(searchValue)
+              );
             });
           }
           const list = document.getElementById("savedElements");
@@ -260,6 +273,7 @@
                 <strong>${el.type}</strong>
                 <div class="editable" contenteditable="false">${contentHtml}</div>
                 <button class="btn btn-sm btn-primary mt-2" onclick="saveEdit(${el.id}, this)">Save</button>
+                <button class="btn btn-sm btn-danger mt-2" onclick="deleteElement(${el.id}, this)">Delete</button>
               `;
               // On click, insert the saved element into the document editor
               li.addEventListener("click", () => {
@@ -315,6 +329,26 @@
         }
       }
 
+      // NEW: Function to delete a saved element
+      async function deleteElement(id, btn) {
+        if (!confirm("Are you sure you want to delete this element?")) return;
+        try {
+          const res = await fetch(`http://localhost:3000/api/elements/${id}`, {
+            method: "DELETE",
+          });
+          if (res.status === 204) {
+            alert("Element deleted successfully!");
+            loadSavedElements();
+          } else {
+            const data = await res.json();
+            throw new Error(data.error || "Failed to delete element.");
+          }
+        } catch (error) {
+          console.error("Error deleting element:", error);
+          alert("Error: " + error.message);
+        }
+      }
+
       // Update order of saved elements based on drag/drop
       async function updateSavedOrder() {
         const list = document.getElementById("savedElements");
@@ -332,7 +366,9 @@
       }
 
       // NEW: Listen for search input changes to filter saved elements dynamically
-      document.getElementById("searchInput").addEventListener("input", loadSavedElements);
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", loadSavedElements);
 
       // Load saved elements on page load
       window.onload = () => {

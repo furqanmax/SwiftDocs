@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "docs",
+  "name": "grab docs",
   "version": "1.0",
   "description": "Save screenshots or HTML/CSS of webpage elements.",
   "permissions": ["activeTab", "scripting", "storage"],
@@ -11,9 +11,7 @@
   "action": {
     "default_popup": "popup.html"
   },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self' https://www.youtube.com; object-src 'self'"
-  },
+
   "web_accessible_resources": [
     {
       "resources": ["h2c.js"],
