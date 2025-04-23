@@ -44,6 +44,19 @@ function createElement(type, content = null) {
   elem.contentEditable = true;
   elem.addEventListener("click", (e) => e.stopPropagation());
   container.appendChild(elem);
+
+  // NEW: Add a remove button for the element
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "btn btn-sm btn-danger remove-btn";
+  removeBtn.textContent = "Remove";
+  removeBtn.onclick = function(e) {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to remove this element?")) {
+      container.remove();
+    }
+  };
+  container.appendChild(removeBtn);
+
   editor.appendChild(container);
 }
 
@@ -61,78 +74,113 @@ document
   .getElementById("addBullet")
   .addEventListener("click", () => createElement("bullet"));
 
-// Save document event
-document.getElementById("saveContent").addEventListener("click", () => {
-  const content = editor.innerHTML;
-  fetch("http://localhost:3000/api/elements", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "custom", content }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
+// Global variable to keep track of the currently open document.
+let currentDocId = null;
+let currentDocName = null;
+
+// Save document event (modified to save only the data content)
+document.getElementById("saveContent").addEventListener("click", async () => {
+  // Clone the editor and remove non-data elements
+  const editorClone = editor.cloneNode(true);
+  editorClone.querySelectorAll('.handle, .remove-btn, .block-add-btn').forEach(el => el.remove());
+  const content = editorClone.innerHTML;
+  
+  let title = currentDocName;
+  if (!currentDocId) {
+    // New document: prompt for document name
+    title = prompt("Enter document name:", "Untitled Document");
+    if (!title) return; // Cancel if no title provided
+    try {
+      const response = await fetch("http://localhost:3000/api/elements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "custom", content, title }),
+      });
+      const data = await response.json();
+      currentDocId = data.id;
+      currentDocName = data.title;
       alert("Document saved successfully!");
-      loadSavedElements();
-    })
-    .catch((error) => console.error("Error saving document:", error));
+    } catch (error) {
+      console.error("Error saving document:", error);
+    }
+  } else {
+    // Existing document: update with PUT
+    try {
+      await fetch(`http://localhost:3000/api/elements/${currentDocId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, title }),
+      });
+      alert("Document updated successfully!");
+    } catch (error) {
+      console.error("Error updating document:", error);
+    }
+  }
+  loadAllElements();
 });
 
-// Load saved elements functionality
-async function loadSavedElements() {
+// Unified function to load both saved elements and custom documents with one API call
+async function loadAllElements() {
   try {
     const res = await fetch("http://localhost:3000/api/elements");
     let data = await res.json();
     data.sort((a, b) => b.id - a.id);
-    const searchValue = document
-      .getElementById("searchInput")
-      .value.toLowerCase();
-    if (searchValue) {
-      data = data.filter((el) => {
-        let contentStr = "";
-        if (el.type === "html-css") {
-          contentStr = el.content.html;
-        } else {
-          contentStr =
-            typeof el.content === "string"
-              ? el.content
-              : JSON.stringify(el.content);
-        }
-        return (
-          el.type.toLowerCase().includes(searchValue) ||
-          contentStr.toLowerCase().includes(searchValue)
-        );
-      });
-    }
-    const list = document.getElementById("savedElements");
-    list.innerHTML = "";
-    data.forEach((el) => {
-      if (el.type !== "custom") {
-        const li = document.createElement("li");
-        li.className = "saved-element";
-        li.dataset.id = el.id;
-        let contentHtml = "";
-        if (el.type === "screenshot") {
-          contentHtml = `<img src="${el.content}" alt="Screenshot" style="max-width:100%;" />`;
-        } else if (el.type === "html-css") {
-          contentHtml = el.content.html;
-        } else {
-          contentHtml = el.content;
-        }
-        li.innerHTML = `
+    
+    // Update Saved Elements (non-custom) in Editor Tab
+    const savedData = data.filter(el => el.type !== "custom");
+    const savedList = document.getElementById("savedElements");
+    savedList.innerHTML = "";
+    savedData.forEach((el) => {
+      const li = document.createElement("li");
+      li.className = "saved-element";
+      li.dataset.id = el.id;
+      let contentHtml = "";
+      if (el.type === "screenshot") {
+        contentHtml = `<img src="${el.content}" alt="Screenshot" style="max-width:100%;" />`;
+      } else if (el.type === "html-css") {
+        contentHtml = el.content.html;
+      } else {
+        contentHtml = el.content;
+      }
+      li.innerHTML = `
+        <div class="document-card">
           <strong>${el.type}</strong>
           <div class="editable" contenteditable="false">${contentHtml}</div>
-          <button class="btn btn-sm btn-primary mt-2" onclick="saveEdit(${el.id}, this)">Save</button>
-          <button class="btn btn-sm btn-danger mt-2" onclick="deleteElement(${el.id}, this)">Delete</button>
-        `;
-        li.addEventListener("click", () => {
+          <div class="btn-group mt-2">
+            <button class="btn btn-sm btn-primary" onclick="saveEdit(${el.id}, this)">Save</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteElement(${el.id}, this)">Delete</button>
+          </div>
+        </div>
+      `;
+      li.addEventListener("click", (e) => {
+        if(e.target.tagName.toLowerCase() !== 'button'){
           insertSavedElement(el);
-        });
-        list.appendChild(li);
-      }
+        }
+      });
+      savedList.appendChild(li);
     });
-    Sortable.create(list, { animation: 150, onEnd: updateSavedOrder });
+    
+    // Update Documents Tab with custom documents and proper UI
+    const customDocs = data.filter(el => el.type === "custom");
+    const docsList = document.getElementById("documentsList");
+    docsList.innerHTML = "";
+    customDocs.forEach((doc) => {
+      const docItem = document.createElement("div");
+      docItem.className = "document-item card mb-2";
+      docItem.style.cursor = "pointer";
+      docItem.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title">${doc.title || 'Document ' + doc.id}</h5>
+          <p class="card-text">${doc.content.substring(0, 100)}...</p>
+        </div>
+      `;
+      docItem.onclick = function() {
+        openDocument(doc.id);
+      };
+      docsList.appendChild(docItem);
+    });
   } catch (error) {
-    console.error("Error fetching saved elements:", error);
+    console.error("Error fetching elements:", error);
   }
 }
 
@@ -165,7 +213,7 @@ async function saveEdit(id, btn) {
       body: JSON.stringify({ content: newContent }),
     });
     alert("Saved!");
-    loadSavedElements();
+    loadAllElements();
   } catch (error) {
     console.error("Error saving edit:", error);
   }
@@ -180,7 +228,7 @@ async function deleteElement(id, btn) {
     });
     if (res.status === 204) {
       alert("Element deleted successfully!");
-      loadSavedElements();
+      loadAllElements();
     } else {
       const data = await res.json();
       throw new Error(data.error || "Failed to delete element.");
@@ -201,7 +249,7 @@ async function updateSavedOrder() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ order }),
     });
-    loadSavedElements();
+    loadAllElements();
   } catch (error) {
     console.error("Error updating order:", error);
   }
@@ -210,11 +258,11 @@ async function updateSavedOrder() {
 // Listen for search input changes
 document
   .getElementById("searchInput")
-  .addEventListener("input", loadSavedElements);
+  .addEventListener("input", loadAllElements);
 
 // Load saved elements on page load
 window.onload = () => {
-  loadSavedElements();
+  loadAllElements();
 };
 
 // Inline block menu functions
@@ -265,6 +313,69 @@ function addInlineBlock(type) {
     showBlockMenu(addBtn);
   };
   newBlock.appendChild(addBtn);
+
+  // NEW: Add a remove button for the inline block element
+  const inlineRemoveBtn = document.createElement("button");
+  inlineRemoveBtn.className = "btn btn-sm btn-danger remove-btn";
+  inlineRemoveBtn.textContent = "Remove";
+  inlineRemoveBtn.onclick = function(e) {
+    e.stopPropagation();
+    if(confirm("Are you sure you want to remove this element?")){
+      newBlock.remove();
+    }
+  };
+  newBlock.appendChild(inlineRemoveBtn);
+
   targetBlock.parentElement.insertBefore(newBlock, targetBlock.nextSibling);
   menu.style.display = "none";
+}
+
+async function loadCustomDocuments() {
+  try {
+    const res = await fetch("http://localhost:3000/api/elements");
+    let data = await res.json();
+    data = data.filter(el => el.type === "custom");
+    data.sort((a, b) => b.id - a.id);
+    return data;
+  } catch (error) {
+    console.error("Error fetching custom documents:", error);
+    return [];
+  }
+}
+
+// NEW: Function to open a document in the editor with content load (modified to update global variables)
+async function openDocument(docId) {
+  const editorArea = document.getElementById("editor");
+  // Check for unsaved changes:
+  if (
+    editorArea.innerText.trim() !== "Start writing your story here..." &&
+    editorArea.innerText.trim() !== ""
+  ) {
+    if (!confirm("You have unsaved changes. Save before opening a new document?")) {
+      return;
+    }
+    // Optionally, you can call a save function here (see above).
+  }
+  try {
+    const response = await fetch(`http://localhost:3000/api/elements/${docId}`);
+    if (!response.ok) {
+      throw new Error("Failed to load document.");
+    }
+    const doc = await response.json();
+    // Set global variables for current document.
+    currentDocId = doc.id;
+    currentDocName = doc.title || ("Document " + doc.id);
+    // Load the document content into the editor; assumes doc.content holds HTML content.
+    editorArea.innerHTML = `<div class="editor-block" contenteditable="true">
+      ${doc.content}
+      <div class="block-add-btn" onclick="showBlockMenu(this)">+</div>
+    </div>`;
+  } catch (error) {
+    console.error("Error loading document:", error);
+    alert("Error loading document. Please try again.");
+  }
+  
+  // Switch to the Editor tab using Bootstrap's tab switch
+  const editorTab = new bootstrap.Tab(document.querySelector('#editor-tab'));
+  editorTab.show();
 }

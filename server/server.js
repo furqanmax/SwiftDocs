@@ -51,6 +51,18 @@ app.get("/api/elements", (req, res) => {
   res.json(elements);
 });
 
+// Get a specific element by docId
+app.get('/api/elements/:docId', (req, res) => {
+  const docId = parseInt(req.params.docId, 10);
+  const elements = readData();
+  const doc = elements.find(item => item.id === docId);
+  if (doc) {
+    res.json(doc);
+  } else {
+    res.status(404).json({ error: "Document not found." });
+  }
+});
+
 // Update an element (merges additional fields)
 app.put("/api/elements/:id", (req, res) => {
   const { id } = req.params;

@@ -24,77 +24,98 @@
   <body>
     <div class="container my-4">
       <h1>Dynamic Document Editor</h1>
-      <!-- Top minimal Notion-like toolbar -->
-      <!-- <div class="notion-toolbar">
-        <button onclick="createElement('heading')">Heading</button>
-        <button onclick="createElement('subheading')">Sub-heading</button>
-        <button onclick="createElement('paragraph')">Paragraph</button>
-        <button onclick="createElement('bullet')">Bullet List</button>
-        <button id="saveContent" class="btn btn-success">Save Document</button>
-      </div> -->
-      <div class="row">
-        <!-- Left Column: Document Editor (9) -->
-        <div class="col-md-9 col-editor">
-          <!-- Toolbar -->
-          <div class="toolbar d-flex justify-content-between">
-            <div>
-              <button id="addHeading">Heading</button>
-              <button id="addSubheading">Sub-heading</button>
-              <button id="addParagraph">Paragraph</button>
-              <button id="addBullet">Bullet List</button>
-            </div>
-            <div>
-              <button id="saveContent" class="btn btn-success">
-                Save Document
-              </button>
-              <button id="exportPDF" class="btn btn-secondary">
-                Export PDF
-              </button>
-              <button id="exportWord" class="btn btn-secondary">
-                Export Word
-              </button>
-            </div>
-          </div>
-          <!-- Editable Document Area -->
-          <div id="editor" ondragover="event.preventDefault()">
-            <!-- Wrap content in editor-block(s) -->
-            <div class="editor-block" contenteditable="true">
-              Start writing your story here...
-              <div class="block-add-btn" onclick="showBlockMenu(this)">+</div>
-            </div>
-          </div>
-          <!-- Floating inline block menu -->
-          <div id="inlineBlockMenu">
-            <button data-type="heading" onclick="addInlineBlock('heading')">
-              Add Heading
-            </button>
-            <button
-              data-type="subheading"
-              onclick="addInlineBlock('subheading')"
-            >
-              Add Sub-heading
-            </button>
-            <button data-type="paragraph" onclick="addInlineBlock('paragraph')">
-              Add Paragraph
-            </button>
-            <button data-type="bullet" onclick="addInlineBlock('bullet')">
-              Add Bullet List
-            </button>
+      <!-- NEW: Tab Navigation -->
+      <ul class="nav nav-tabs" id="mainTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documentsTab" type="button" role="tab">
+            Documents
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="editor-tab" data-bs-toggle="tab" data-bs-target="#editorTab" type="button" role="tab">
+            Editor
+          </button>
+        </li>
+      </ul>
+      <div class="tab-content" id="mainTabContent">
+        <!-- Documents Tab -->
+        <div class="tab-pane fade show active" id="documentsTab" role="tabpanel">
+          <h3>Saved Documents</h3>
+          <!-- Updated: Display documents in cards in a grid (5 cards in a row on large screens) -->
+          <div id="documentsList" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
+            <!-- Custom document cards will be dynamically loaded here -->
+            <!-- Example card format:
+                 <div class="col">
+                   <div class="card h-100">
+                     <div class="card-body">
+                       <h5 class="card-title">Document Title</h5>
+                       <p class="card-text">Small preview text...</p>
+                     </div>
+                   </div>
+                 </div>
+            -->
           </div>
         </div>
-        <!-- Right Column: Saved Elements List (3) -->
-        <div class="col-md-3">
-          <h3>Saved Elements</h3>
-          <!-- NEW: Search input to filter saved elements -->
-          <input
-            type="text"
-            id="searchInput"
-            class="form-control mb-3"
-            placeholder="Search elements..."
-          />
-          <ul id="savedElements" class="list-unstyled">
-            <!-- Dynamically loaded saved elements will be inserted here -->
-          </ul>
+        <!-- Editor Tab -->
+        <div class="tab-pane fade" id="editorTab" role="tabpanel">
+          <div class="row mt-3">
+            <!-- Editor Column -->
+            <div class="col-md-9 col-editor">
+              <!-- Toolbar -->
+              <div class="toolbar d-flex justify-content-between">
+                <div>
+                  <button id="addHeading">Heading</button>
+                  <button id="addSubheading">Sub-heading</button>
+                  <button id="addParagraph">Paragraph</button>
+                  <button id="addBullet">Bullet List</button>
+                </div>
+                <div>
+                  <button id="saveContent" class="btn btn-success">
+                    Save Document
+                  </button>
+                  <button id="exportPDF" class="btn btn-secondary">
+                    Export PDF
+                  </button>
+                  <button id="exportWord" class="btn btn-secondary">
+                    Export Word
+                  </button>
+                </div>
+              </div>
+              <!-- Editable Document Area -->
+              <div id="editor" ondragover="event.preventDefault()">
+                <!-- Wrap content in editor-block(s) -->
+                <div class="editor-block" contenteditable="true">
+                 
+                </div>
+              </div>
+              <!-- Floating inline block menu -->
+              <div id="inlineBlockMenu">
+                <button data-type="heading" onclick="addInlineBlock('heading')">
+                  Add Heading
+                </button>
+                <button
+                  data-type="subheading"
+                  onclick="addInlineBlock('subheading')"
+                >
+                  Add Sub-heading
+                </button>
+                <button data-type="paragraph" onclick="addInlineBlock('paragraph')">
+                  Add Paragraph
+                </button>
+                <button data-type="bullet" onclick="addInlineBlock('bullet')">
+                  Add Bullet List
+                </button>
+              </div>
+            </div>
+            <!-- Saved Elements Column -->
+            <div class="col-md-3">
+              <h3>Saved Elements</h3>
+              <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search elements..." />
+              <ul id="savedElements" class="list-unstyled">
+                <!-- Saved elements will be loaded here -->
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
