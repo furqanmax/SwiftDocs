@@ -1,0 +1,155 @@
+/* Core styles */
+body {
+  font-family: "Inter", sans-serif;
+  background: #f7f8fa;
+  padding: 40px;
+  color: #333;
+}
+h1 {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+/* Editor styling to mimic Notion/novel */
+#editor {
+  min-height: 600px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  margin-bottom: 40px;
+}
+/* Draggable block styling */
+.draggable {
+  cursor: move;
+  margin: 20px 0;
+  padding: 10px 15px;
+  border-left: 4px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+/* .draggable:hover {
+    border-left-color: #007bff;
+    background: #f0f8ff;
+} */
+.draggable:focus {
+  outline: none;
+  border-left-color: #007bff;
+}
+/* Toolbar styling */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+}
+.toolbar button {
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: #fff;
+  padding: 8px 16px;
+  transition: background 0.2s;
+}
+.toolbar button:hover {
+  background: #0056b3;
+}
+/* Minimal top Notion-like toolbar */
+.notion-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+  justify-content: center;
+}
+.notion-toolbar button {
+  background: none;
+  border: none;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+.notion-toolbar button:hover {
+  background: #f0f0f0;
+}
+/* Saved elements list styling */
+#savedElements {
+  max-width: 100%;
+  margin: 0 auto;
+}
+.saved-element {
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 10px 0;
+}
+.saved-element:hover {
+  cursor: pointer;
+  background: #f0f8ff;
+}
+.saved-element strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+}
+.saved-element .editable {
+  padding: 5px;
+  border: 1px dashed transparent;
+}
+.saved-element .editable:focus {
+  border-color: #007bff;
+}
+/* Two-column layout */
+.col-editor {
+  border-right: 1px solid #ddd;
+}
+/* NEW: Editor block and inline add button */
+.editor-block {
+  position: relative;
+  padding-left: 40px;
+  margin-bottom: 20px;
+}
+.editor-block .block-add-btn {
+  position: absolute;
+  left: -35px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #007bff;
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.editor-block:hover .block-add-btn,
+.block-add-btn:hover {
+  display: flex;
+}
+/* NEW: Floating inline block menu */
+#inlineBlockMenu {
+  position: absolute;
+  display: none;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+#inlineBlockMenu button {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+#inlineBlockMenu button:hover {
+  background: #f0f0f0;
+}
