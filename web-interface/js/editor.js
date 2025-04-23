@@ -45,11 +45,11 @@ function createElement(type, content = null) {
   elem.addEventListener("click", (e) => e.stopPropagation());
   container.appendChild(elem);
 
-  // NEW: Add a remove button for the element
+  // NEW: Add a remove button for the element with icon
   const removeBtn = document.createElement("button");
   removeBtn.className = "btn btn-sm btn-danger remove-btn";
-  removeBtn.textContent = "Remove";
-  removeBtn.onclick = function(e) {
+  removeBtn.innerHTML = '<i class="bi bi-x-circle"></i>';
+  removeBtn.onclick = function (e) {
     e.stopPropagation();
     if (confirm("Are you sure you want to remove this element?")) {
       container.remove();
@@ -82,9 +82,11 @@ let currentDocName = null;
 document.getElementById("saveContent").addEventListener("click", async () => {
   // Clone the editor and remove non-data elements
   const editorClone = editor.cloneNode(true);
-  editorClone.querySelectorAll('.handle, .remove-btn, .block-add-btn').forEach(el => el.remove());
+  editorClone
+    .querySelectorAll(".handle, .remove-btn, .block-add-btn")
+    .forEach((el) => el.remove());
   const content = editorClone.innerHTML;
-  
+
   let title = currentDocName;
   if (!currentDocId) {
     // New document: prompt for document name
@@ -125,58 +127,98 @@ async function loadAllElements() {
     const res = await fetch("http://localhost:3000/api/elements");
     let data = await res.json();
     data.sort((a, b) => b.id - a.id);
-    
-    // Update Saved Elements (non-custom) in Editor Tab
-    const savedData = data.filter(el => el.type !== "custom");
+
+    // Update Saved Elements (non-custom) in Editor Tab with card UI
+    const savedData = data.filter((el) => el.type !== "custom");
     const savedList = document.getElementById("savedElements");
     savedList.innerHTML = "";
     savedData.forEach((el) => {
       const li = document.createElement("li");
-      li.className = "saved-element";
+      li.className = "saved-element position-relative list-unstyled";
       li.dataset.id = el.id;
       let contentHtml = "";
       if (el.type === "screenshot") {
-        contentHtml = `<img src="${el.content}" alt="Screenshot" style="max-width:100%;" />`;
+        contentHtml = `<img src="${el.content}" alt="Screenshot" style="max-width:100%; height:auto;">`;
       } else if (el.type === "html-css") {
         contentHtml = el.content.html;
       } else {
         contentHtml = el.content;
       }
       li.innerHTML = `
-        <div class="document-card">
-          <strong>${el.type}</strong>
-          <div class="editable" contenteditable="false">${contentHtml}</div>
-          <div class="btn-group mt-2">
+        <div class="card saved-card shadow-sm" style="height:100px; position:relative; overflow:hidden;">
+          <div class="card-body p-2">
+            <div class="content-preview" style="height:100%; overflow:hidden; transition: all 0.3s ease;">
+              ${contentHtml}
+            </div>
+          </div>
+          <div class="saved-actions position-absolute" style="top: 5px; right: 5px; display:none;">
             <button class="btn btn-sm btn-primary" onclick="saveEdit(${el.id}, this)">Save</button>
             <button class="btn btn-sm btn-danger" onclick="deleteElement(${el.id}, this)">Delete</button>
           </div>
         </div>
       `;
+      // Expand preview and show actions on hover
+      li.addEventListener("mouseenter", function () {
+        const contentPreview = li.querySelector(".content-preview");
+        if (contentPreview) contentPreview.style.height = "auto";
+        const actions = li.querySelector(".saved-actions");
+        if (actions) actions.style.display = "block";
+      });
+      li.addEventListener("mouseleave", function () {
+        const contentPreview = li.querySelector(".content-preview");
+        if (contentPreview) contentPreview.style.height = "100%";
+        const actions = li.querySelector(".saved-actions");
+        if (actions) actions.style.display = "none";
+      });
       li.addEventListener("click", (e) => {
-        if(e.target.tagName.toLowerCase() !== 'button'){
+        if (e.target.tagName.toLowerCase() !== "button") {
           insertSavedElement(el);
         }
       });
       savedList.appendChild(li);
     });
-    
-    // Update Documents Tab with custom documents and proper UI
-    const customDocs = data.filter(el => el.type === "custom");
+
+    // Update Documents Tab with custom documents and improved UI
+    const customDocs = data.filter((el) => el.type === "custom");
     const docsList = document.getElementById("documentsList");
     docsList.innerHTML = "";
     customDocs.forEach((doc) => {
+      // Create a document card with fixed preview height and hover actions
       const docItem = document.createElement("div");
-      docItem.className = "document-item card mb-2";
-      docItem.style.cursor = "pointer";
+      docItem.className = "document-item col"; // fits grid layout (use grid classes in HTML)
       docItem.innerHTML = `
-        <div class="card-body">
-          <h5 class="card-title">${doc.title || 'Document ' + doc.id}</h5>
-          <p class="card-text">${doc.content.substring(0, 100)}...</p>
+        <div class="card h-100 shadow-sm" style="position:relative; overflow:hidden;">
+          <div class="card-body p-2">
+            <h5 class="card-title">${doc.title || "Document " + doc.id}</h5>
+            <div class="doc-preview" style="height:60px; overflow:hidden; transition: height 0.3s;">
+              ${doc.content.substring(0, 150)}
+            </div>
+          </div>
+          <div class="doc-actions position-absolute" style="bottom:5px; right:5px; display:none;">
+            <button class="btn btn-sm btn-primary" onclick="openDocument(${
+              doc.id
+            }); event.stopPropagation();">Open</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteElement(${
+              doc.id
+            }, this); event.stopPropagation();">Delete</button>
+          </div>
         </div>
       `;
-      docItem.onclick = function() {
+      docItem.addEventListener("mouseenter", function () {
+        const preview = docItem.querySelector(".doc-preview");
+        if (preview) preview.style.height = "auto";
+        const actions = docItem.querySelector(".doc-actions");
+        if (actions) actions.style.display = "block";
+      });
+      docItem.addEventListener("mouseleave", function () {
+        const preview = docItem.querySelector(".doc-preview");
+        if (preview) preview.style.height = "60px";
+        const actions = docItem.querySelector(".doc-actions");
+        if (actions) actions.style.display = "none";
+      });
+      docItem.addEventListener("click", function () {
         openDocument(doc.id);
-      };
+      });
       docsList.appendChild(docItem);
     });
   } catch (error) {
@@ -314,13 +356,13 @@ function addInlineBlock(type) {
   };
   newBlock.appendChild(addBtn);
 
-  // NEW: Add a remove button for the inline block element
+  // NEW: Add a remove button for the inline block element with icon
   const inlineRemoveBtn = document.createElement("button");
   inlineRemoveBtn.className = "btn btn-sm btn-danger remove-btn";
-  inlineRemoveBtn.textContent = "Remove";
-  inlineRemoveBtn.onclick = function(e) {
+  inlineRemoveBtn.innerHTML = '<i class="bi bi-x-circle"></i>';
+  inlineRemoveBtn.onclick = function (e) {
     e.stopPropagation();
-    if(confirm("Are you sure you want to remove this element?")){
+    if (confirm("Are you sure you want to remove this element?")) {
       newBlock.remove();
     }
   };
@@ -334,7 +376,7 @@ async function loadCustomDocuments() {
   try {
     const res = await fetch("http://localhost:3000/api/elements");
     let data = await res.json();
-    data = data.filter(el => el.type === "custom");
+    data = data.filter((el) => el.type === "custom");
     data.sort((a, b) => b.id - a.id);
     return data;
   } catch (error) {
@@ -351,7 +393,9 @@ async function openDocument(docId) {
     editorArea.innerText.trim() !== "Start writing your story here..." &&
     editorArea.innerText.trim() !== ""
   ) {
-    if (!confirm("You have unsaved changes. Save before opening a new document?")) {
+    if (
+      !confirm("You have unsaved changes. Save before opening a new document?")
+    ) {
       return;
     }
     // Optionally, you can call a save function here (see above).
@@ -364,7 +408,7 @@ async function openDocument(docId) {
     const doc = await response.json();
     // Set global variables for current document.
     currentDocId = doc.id;
-    currentDocName = doc.title || ("Document " + doc.id);
+    currentDocName = doc.title || "Document " + doc.id;
     // Load the document content into the editor; assumes doc.content holds HTML content.
     editorArea.innerHTML = `<div class="editor-block" contenteditable="true">
       ${doc.content}
@@ -374,8 +418,8 @@ async function openDocument(docId) {
     console.error("Error loading document:", error);
     alert("Error loading document. Please try again.");
   }
-  
+
   // Switch to the Editor tab using Bootstrap's tab switch
-  const editorTab = new bootstrap.Tab(document.querySelector('#editor-tab'));
+  const editorTab = new bootstrap.Tab(document.querySelector("#editor-tab"));
   editorTab.show();
 }

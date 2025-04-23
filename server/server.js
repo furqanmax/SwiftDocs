@@ -52,10 +52,10 @@ app.get("/api/elements", (req, res) => {
 });
 
 // Get a specific element by docId
-app.get('/api/elements/:docId', (req, res) => {
+app.get("/api/elements/:docId", (req, res) => {
   const docId = parseInt(req.params.docId, 10);
   const elements = readData();
-  const doc = elements.find(item => item.id === docId);
+  const doc = elements.find((item) => item.id === docId);
   if (doc) {
     res.json(doc);
   } else {
